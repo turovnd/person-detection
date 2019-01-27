@@ -1,0 +1,29 @@
+{
+  "name": "person-detection",
+  "version": "1.0.0",
+  "description": "Detect person, age, gender, emotions, clothes' brands",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/turovnd/person-detection.git"
+  },
+  "author": "Nikolay Turov",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/turovnd/person-detection/issues"
+  },
+  "homepage": "https://github.com/turovnd/person-detection#readme",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "cors": "^2.8.5",
+    "dotenv": "^6.2.0",
+    "express": "^4.16.4",
+    "express-fileupload": "^1.1.1-alpha.1",
+    "fs": "0.0.1-security",
+    "path": "^0.12.7",
+    "survey-jquery": "^1.0.65"
+  }
+}

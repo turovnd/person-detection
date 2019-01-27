@@ -172,7 +172,7 @@
                         type: "radiogroup",
                         name: "gender",
                         title: "Select your gender",
-                        // isRequired: true,
+                        isRequired: true,
                         colCount: 2,
                         choices: [
                             "Male",

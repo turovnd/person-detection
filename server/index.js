@@ -76,7 +76,6 @@ app.post('/api/upload', async (req, res) => {
  */
 app.post('/api/result', async (req, res) => {
     try {
-        console.log(req.body)
         let directory = path.join( __dirname, '..', process.env.UPLOAD_PATH, req.body.unique );
 
         // If directory is not exist -> create

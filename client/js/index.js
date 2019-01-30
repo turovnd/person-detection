@@ -224,7 +224,7 @@
                     {
                         type: 'html',
                         name: 'image' + index,
-                        html: '<img src="images/image' + index + '.png" alt="Image #' + index + '"  height="480" width="640">'
+                        html: '<img src="images/image' + index + '.gif" alt="Image #' + index + '"  height="480" width="640">'
                     }
                 ]
             });
@@ -327,7 +327,7 @@
     var imageCounter = 0;
 
     var unique = +new Date();
-    var questionsNumber = 2;
+    var questionsNumber = 10;
 
     if (!window["%hammerhead%"]) {
         initCamera();

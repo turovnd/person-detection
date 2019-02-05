@@ -55,16 +55,21 @@ let getEmotions = async (imagePath) => {
     }).then(response => {
         return response.data[ 0 ].faceAttributes;
     }).catch(async error => {
-        error = error.response.data.error;
-        console.log("Error " + JSON.stringify(error));
-        if (error.statusCode === 429) {
-            await sleep(parseInt(error.message.replace(/[^0-9]/g, '')));
-            return getEmotions(imagePath);
-        } else if (error.code === "RateLimitExceeded") {
+        try {
+            error = error && error.response && error.response.data ? error.response.data.error : { code: "RateLimitExceeded" };
+            console.log("Error " + JSON.stringify(error));
+            if (error.statusCode === 429) {
+                await sleep(parseInt(error.message.replace(/[^0-9]/g, '')));
+                return getEmotions(imagePath);
+            } else if (error.code === "RateLimitExceeded") {
+                await sleep(60);
+                return getEmotions(imagePath);
+            }
+            return {}
+        } catch(err) {
             await sleep(60);
             return getEmotions(imagePath);
         }
-        return {}
     })
 };
 

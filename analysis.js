@@ -53,9 +53,10 @@ let getEmotions = async (imagePath) => {
         },
         data: await fs.readFileSync(imagePath.toString())
     }).then(response => {
-        return response.data[ 0 ].faceAttributes;
+        return response.data[ 0 ] ? response.data[ 0 ].faceAttributes : null;
     }).catch(async error => {
         try {
+            console.log(error.toString())
             error = error && error.response && error.response.data ? error.response.data.error : { code: "RateLimitExceeded" };
             console.log("Error " + JSON.stringify(error));
             if (error.statusCode === 429) {
@@ -65,7 +66,7 @@ let getEmotions = async (imagePath) => {
                 await sleep(60);
                 return getEmotions(imagePath);
             }
-            return {}
+            return null
         } catch(err) {
             await sleep(60);
             return getEmotions(imagePath);
@@ -79,7 +80,10 @@ let analyseImage = async (resultPath, imagePath) => {
     console.log("Analysis [" + index + "] by path " + imagePath);
     let file = await fs.readFileSync(resultPath);
     file = JSON.parse(file.toString());
-    file[index] = await getEmotions(imagePath);
+    let emotions = await getEmotions(imagePath);
+    if (emotions) {
+        file[index] = emotions;
+    }
     await fs.writeFileSync(resultPath, JSON.stringify(file, null, 4));
 };
 

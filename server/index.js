@@ -2,103 +2,64 @@
 
 require('dotenv').config();
 
-const express = require('express');
-const fileUpload = require('express-fileupload');
-const bodyParser = require('body-parser');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 
+// Library for generate unique ID.
+const uuid = require('uuid/v4');
 
-// Create server based on express app
-const app = express();
+// Create express app
+const app = require('express')();
 
 // Use cors for retrieve cross domain requests.
 app.use(cors());
 
-// Use body parser for parse request and use retrieve data in `req.body`
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+// Create server based on express app
+const server = require('http').createServer(app);
 
-// Initialize fileUploader. When file retrieve it will be in `req.files`.
-app.use(fileUpload({
-    limits: { fileSize: 50 * 1024 * 1024 },
-}));
+// Create websoket server
+const io = require('socket.io')(server);
 
-/**
- * Handle upload image request.
- */
-app.post('/api/upload', async (req, res) => {
-    try {
-        let keys = Object.keys(req.files);
-        let imageName = req.files[ keys[ 0 ] ].name;
+// Analyse module
+const Analysis = require('./analysis.js');
+Analysis.init();
 
-        // Unique directory of survey
-        let uniqueDir = imageName.split('#')[0];
-
-        // Directory to question on specific image.
-        let imageDir = imageName.split('#')[1];
-
-        // Image name
-        imageName = imageName.split('#')[2];
-
-        let uniqueDirPath = path.join( __dirname, '..', process.env.UPLOAD_PATH, uniqueDir );
-        let imageDirPath = path.join( uniqueDirPath, imageDir );
-        let filePath = path.join( imageDirPath, imageName );
-
-        // If directory is not exist -> create
-        if(!fs.existsSync(uniqueDirPath)) {
-            await fs.mkdirSync(uniqueDirPath)
+io.on('connection', (client) => {
+    client.on("experiment", (req, response) => {
+        switch(req.action) {
+            case "start":
+                let experiment = uuid();
+                console.log("Start experiment: " + experiment);
+                return response(experiment);
+            case "finish":
+                console.log("Finish experiment: " + req.uuid);
+                return response("Some conclusion of experiment");
+            default:
+                return response("error");
         }
+    });
 
-        // If directory is not exist -> create
-        if(!fs.existsSync(imageDirPath)) {
-            await fs.mkdirSync(imageDirPath)
+    client.on("results", (query, response) => {
+
+    });
+
+    client.on("image", async (req, response) => {
+        console.log("Start loading image: " + req.uuid + "/" + req.name);
+        let folder = path.join( __dirname, '..', process.env.UPLOAD_PATH, req.uuid );
+        if(!await fs.existsSync(folder)) {
+            await fs.mkdirSync(folder)
         }
-
-        // Check if image was stored before. If not -> create. Else send error 400.
-        if (fs.existsSync(filePath)) {
-            res.sendStatus(400);
-        } else {
-            req.files[ keys[ 0 ] ].mv( filePath );
-            res.send('ok')
-        }
-    } catch (err) {
-        // Handle any system error.
-        console.log(err);
-        res.sendStatus(500);
-    }
-});
-
-
-/**
- * Handle upload image request.
- */
-app.post('/api/result', async (req, res) => {
-    try {
-        let directory = path.join( __dirname, '..', process.env.UPLOAD_PATH, req.body.unique );
-
-        // If directory is not exist -> create
-        if(!fs.existsSync(directory)) {
-            await fs.mkdirSync(directory)
-        }
-
-        // Write results to file.
-        var filePath = path.join(directory, 'result.json');
-        await fs.writeFileSync(filePath, req.body.result);
-
-        res.send('ok');
-
-    } catch (err) {
-        // Handle any system error.
-        console.log(err);
-        res.sendStatus(500);
-    }
+        let image = path.join(folder, req.name);
+        await fs.writeFileSync(image, Buffer(req.data, "base64"));
+        Analysis.push(image);
+        response(req.name);
+    })
 });
 
 /**
  * Listen request on SERVER_PORT.
  */
-app.listen(process.env.SERVER_PORT, () => {
+server.listen(process.env.SERVER_PORT, () => {
     console.log('Server ready! http://localhost:' + process.env.SERVER_PORT);
 });

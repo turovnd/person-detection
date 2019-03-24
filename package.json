@@ -27,6 +27,8 @@
     "express-fileupload": "^1.1.1-alpha.1",
     "fs": "0.0.1-security",
     "path": "^0.12.7",
-    "survey-jquery": "^1.0.65"
+    "socket.io": "^2.2.0",
+    "survey-jquery": "^1.0.65",
+    "uuid": "^3.3.2"
   }
 }

@@ -3,17 +3,38 @@
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Emotion analysis survey</title>
-		<link rel="stylesheet" href="css/survey.css">
+		<title>Emotion analysis experiment</title>
+		<link rel="stylesheet" href="css/bootstrap.min.css">
+		<link rel="stylesheet" href="css/font-awesome.min.css">
+		<link rel="stylesheet" href="css/index.css">
 	</head>
 	<body>
-		<div id="surveyElement"></div>
-
-		<div id="webcam" style="display: none"></div>
-
+		<div>
+			<div id="preview" class="preview hidden">
+				<i class="fa fa-close preview-close js-toggle-preview"></i>
+			</div>
+			<div id="previewOpen" class="preview-open">
+				<i class="fa fa-video-camera"></i>
+			</div>
+			<div id="intro" class="d-flex justify-content-center bg-light h-50vh bb-1">
+				<div class="my-auto text-center">
+					<h2 class="mb-4">Welcome to the experiment</h2>
+					<button id="startBtn" class="btn btn-primary">Start experiment</button>
+				</div>
+			</div>
+			<div id="experiment" class="h-50vh bb-1 hidden"></div>
+			<div id="result" class="justify-content-center bg-light h-50vh bb-1 hidden">
+				<div class="my-auto text-center">
+					<h2 class="mb-4">Well done! You stay happier (+3%) after the experiment</h2>
+					<button id="resetBtn" class="btn btn-success">Close</button>
+				</div>
+			</div>
+			<div id="allResults" class="h-50vh"></div>
+		</div>
 		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+		<script type="text/javascript" src="js/socket.io.js"></script>
 		<script type="text/javascript" src="js/getUserMedia.js"></script>
-		<script type="text/javascript" src="js/survey.jquery.js"></script>
+		<!--<script type="text/javascript" src="js/survey.jquery.js"></script>-->
 		<script type="text/javascript" src="js/index.js"></script>
 	</body>
 </html>

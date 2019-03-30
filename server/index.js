@@ -10,7 +10,8 @@ const path = require('path');
 const uuid = require('uuid/v4');
 
 // Create express app
-const app = require('express')();
+const express = require('express');
+const app = express();
 
 // Use cors for retrieve cross domain requests.
 app.use(cors());
@@ -23,7 +24,11 @@ const io = require('socket.io')(server);
 
 // Analyse module
 const Analysis = require('./analysis.js');
+
 Analysis.init();
+
+app.use(express.static(path.join(__dirname, "..", "client")));
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, "..", "client", "index.html")));
 
 io.on('connection', (client) => {
     client.on("experiment", (req, response) => {
@@ -52,7 +57,7 @@ io.on('connection', (client) => {
         }
         let image = path.join(folder, req.name);
         await fs.writeFileSync(image, Buffer(req.data, "base64"));
-        Analysis.push(image);
+        Analysis.push(image, client);
         response(req.name);
     })
 });

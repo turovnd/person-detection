@@ -9,28 +9,50 @@
 		<link rel="stylesheet" href="css/index.css">
 	</head>
 	<body>
-		<div>
-			<div id="preview" class="preview hidden">
-				<i class="fa fa-close preview-close js-toggle-preview"></i>
-			</div>
-			<div id="previewOpen" class="preview-open">
-				<i class="fa fa-video-camera"></i>
-			</div>
-			<div id="intro" class="d-flex justify-content-center bg-light h-50vh bb-1">
-				<div class="my-auto text-center">
-					<h2 class="mb-4">Welcome to the experiment</h2>
-					<button id="startBtn" class="btn btn-primary">Start experiment</button>
-				</div>
-			</div>
-			<div id="experiment" class="h-50vh bb-1 hidden"></div>
-			<div id="result" class="justify-content-center bg-light h-50vh bb-1 hidden">
-				<div class="my-auto text-center">
-					<h2 class="mb-4">Well done! You stay happier (+3%) after the experiment</h2>
-					<button id="resetBtn" class="btn btn-success">Close</button>
-				</div>
-			</div>
-			<div id="allResults" class="h-50vh"></div>
-		</div>
+        <div class="clearfix">
+            <div class="left-column">
+                <div id="intro" class="d-flex justify-content-center bg-light h-100vh">
+                    <div class="my-auto text-center">
+                        <h2 class="mb-4">Welcome to the experiment</h2>
+                        <button id="startBtn" class="btn btn-primary">Start experiment</button>
+                    </div>
+                </div>
+                <div id="experiment" class="hidden experiment h-100vh"></div>
+                <div id="result" class="justify-content-center bg-light hidden h-100vh">
+                    <div class="my-auto text-center">
+                        <div id="resultBlock"></div>
+                        <button id="resetBtn" class="btn btn-success">Close</button>
+                    </div>
+                </div>
+            </div>
+            <div class="right-column h-100vh">
+                <div id="preview" class="preview"></div>
+                <div class="col-12">
+                    <dl class="row">
+                        <dt class="col-5">Age</dt>
+                        <dd class="col-7" id="ageBlock">-</dd>
+                    </dl>
+                    <dl class="row">
+                        <dt class="col-5">Gender</dt>
+                        <dd class="col-7" id="genderBlock">-</dd>
+                    </dl>
+                    <dl class="row">
+                        <dt class="col-5">Smile</dt>
+                        <dd class="col-7" id="smileBlock">-</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <!--<div id="preview" class="preview hidden">-->
+            <!--<i class="fa fa-close preview-close js-toggle-preview"></i>-->
+        <!--</div>-->
+        <!--<div id="previewOpen" class="preview-open js-toggle-preview">-->
+            <!--<i class="fa fa-video-camera"></i>-->
+        <!--</div>-->
+
+        <!--<div class="h-30vh">-->
+
+        <!--</div>-->
 		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
 		<script type="text/javascript" src="js/socket.io.js"></script>
 		<script type="text/javascript" src="js/getUserMedia.js"></script>

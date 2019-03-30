@@ -2,59 +2,11 @@
     'use strict';
 
     /**
-     * Shuffle array elements.
-     *
-     * @param a {array}
-     * @return {array}
-     */
-    function shuffle(a) {
-        for (var i = a.length - 1; i > 0; i--) {
-            var j = Math.floor(Math.random() * (i + 1));
-            [a[i], a[j]] = [a[j], a[i]];
-        }
-        return a;
-    }
-
-    /**
-     * Sleep function
-     */
-    function sleep(time) {
-        return new Promise(function (resolve) {
-            setTimeout(resolve, time);
-        });
-    }
-
-    /**
-     * Experiments steps
-     */
-    var EXPERIMENT_STEPS = [
-        {
-            id: "image0",
-            image: "/images/image0.gif"
-        },
-        {
-            id: "image1",
-            image: "/images/image1.gif"
-        },
-        {
-            id: "image2",
-            image: "/images/image2.gif"
-        },
-        {
-            id: "image3",
-            image: "/images/image3.gif"
-        },
-        {
-            id: "image4",
-            image: "/images/image4.gif"
-        }
-    ];
-
-    /**
      * Settings
      */
     var socketUrl = "http://localhost:2000";
     var currentExperiment = null;
+    var currentResults = { metadata: { age: [], gender: [], smile: [] }, steps: {} };
     var socket = io(socketUrl);
     var snapshotTimes = { // Total 3 sec
         before: 200,
@@ -62,12 +14,45 @@
         after: 800
     };
 
+    /**
+     * Experiments steps
+     */
+    var EXPERIMENT_STEPS = [
+        {
+            id: "sadness",
+            image: "/images/sadness.gif"
+        },
+        {
+            id: "neutral",
+            image: "/images/neutral.gif"
+        },
+        {
+            id: "happiness",
+            image: "/images/happiness.gif"
+        }
+    ];
+
     socket.on('connect', function() {
         console.info("WS connected");
     });
 
     socket.on('disconnect', function(){
         console.info("WS disconnect");
+    });
+
+    socket.on("result", function(result) {
+        console.log(result)
+        if (result.image) {
+            var imageId = result.image.split(".")[ 0 ];
+            currentResults.steps[imageId] = result.emotion;
+            if (result.age)
+                currentResults.metadata.age.push(result.age);
+            if (result.gender)
+                currentResults.metadata.gender.push(result.gender);
+            if (result.smile)
+                currentResults.metadata.smile.push(result.smile);
+            updateResults()
+        }
     });
 
     var newExperiment_ = function() {
@@ -94,19 +79,18 @@
 
 
     var startExperiment_ = async function() {
-        document.getElementById("intro").classList.add("hidden");
-        document.getElementById("intro").classList.remove("d-flex");
-        document.getElementById("result").classList.add("hidden");
-        document.getElementById("result").classList.remove("d-flex");
-        document.getElementById("experiment").classList.remove("hidden");
+        $('#intro').addClass("hidden").removeClass("d-flex");
+        $('#result').addClass("hidden").removeClass("d-flex");
+        $('#experiment').removeClass("hidden");
         var steps = shuffle(EXPERIMENT_STEPS);
         for (var i = 0; i < steps.length; i++) {
-            await showStep_(steps[i])
+            await showStep_(steps[i]);
         }
-        finishExperiment_()
+        finishExperiment_();
     };
 
     var showStep_ = function(step) {
+        $('#experiment').css("background-image", "url('" + step.image + "')");
         return new Promise(async function(resolve) {
             await sleep(snapshotTimes.before);
             sendImage_(step.id, "first", getSnapshot_());
@@ -118,35 +102,89 @@
     };
 
     var finishExperiment_ = function() {
-        socket.emit("experiment", {action: "finish", uuid: currentExperiment}, function(resp){
+        socket.emit("experiment", {action: "finish", uuid: currentExperiment}, function(){
             console.info("Experiment [" + currentExperiment + "] has finished");
-            document.getElementById("intro").classList.add("hidden");
-            document.getElementById("intro").classList.remove("d-flex");
-            document.getElementById("result").classList.remove("hidden");
-            document.getElementById("result").classList.add("d-flex");
-            document.getElementById("experiment").classList.add("hidden");
+            $('#intro').addClass("hidden").removeClass("d-flex");
+            $('#result').removeClass("hidden").addClass("d-flex");
+            $('#experiment').addClass("hidden");
+            $('#resultBlock').html("<h2><i class='fa fa-spin fa-spinner' aria-hidden='true'></i> Please wait, data is processing</h2>");
+            $('#resetBtn').attr('disabled', true).addClass("hidden");
             currentExperiment = null;
         });
     };
 
+    var getResult_ = function (first, second) {
+        var res = {}
+        for(var attr in first) {
+            // TODO формула
+            res[attr] = (second[attr] - first[attr]).toFixed(3)
+        }
+        return res;
+    };
+
+    var updateResults = function() {
+        if (Object.keys(currentResults.steps).length === EXPERIMENT_STEPS.length * 2) {
+            $('#resetBtn').attr('disabled', false).removeClass("hidden");
+            $('#resultBlock').html("<table class='table'><thead><tr>" +
+                    "<th>IMAGE</th>" + (EXPERIMENT_STEPS.map(el => { return "<th>" + el.id.toUpperCase() + "</th>" })) + "<th>RESULT</th>" +
+                "</tr></thead><tbody>" +
+                    EXPERIMENT_STEPS.map(el => {
+                        var first = currentResults.steps[ el.id + "_first" ];
+                        var second = currentResults.steps[ el.id + "_second" ];
+                        var result = getResult_(first, second);
+                        var img = el.image.split("/");
+                        return "<tr>" +
+                            "<td>" + img[img.length - 1].split(".")[0] + "</td>" +
+                            EXPERIMENT_STEPS.map(el1 => {
+                                return "<td>" + result[el1.id] +  "</td>";
+                            }) +
+                            "<td>TODO</td>" +
+                        "</tr>"
+                    }) +
+                "</tbody></table>");
+        }
+
+        var ages = currentResults.metadata.age;
+        var genders = currentResults.metadata.gender;
+        var smiles = currentResults.metadata.smile;
+
+        if (ages.length)
+            $("#ageBlock").html(
+                parseInt(ages.reduce((a,b) => { return a + b }) / ages.length)
+            );
+
+        if (genders.length)
+            $("#genderBlock").html(
+                genders.filter(a => { return a.toUpperCase() === "MALE" }).length > genders.filter(a => { return a.toUpperCase() === "FEMALE" }).length
+                ? "Male" : "Female"
+            );
+
+        if (smiles.length)
+            $("#smileBlock").html(
+                (smiles.reduce((a,b) => { return a + b }) / smiles.length).toFixed(2)
+            );
+    };
+
+
     var showIntro_ = function() {
-        document.getElementById("intro").classList.remove("hidden");
-        document.getElementById("intro").classList.add("d-flex");
-        document.getElementById("result").classList.add("hidden");
-        document.getElementById("result").classList.remove("d-flex");
-        document.getElementById("experiment").classList.add("hidden");
+        $('#intro').addClass("d-flex").removeClass("hidden");
+        $('#result').addClass("hidden").removeClass("d-flex");
+        $('#experiment').addClass("hidden");
+        $("#ageBlock").html("-");
+        $("#genderBlock").html("-");
+        $("#smileBlock").html("-");
+        currentResults = { metadata: { age: [], gender: [], smile: [] }, steps: {} };
     };
 
     var togglePreview_ = function() {
-        document.getElementById("preview").classList.toggle("hidden");
-        document.getElementById("previewOpen").classList.toggle("hidden");
+        $("#preview").toggleClass("hidden");
+        $("#previewOpen").toggleClass("hidden");
     };
 
     // Add listeners to elements
-    document.getElementById("startBtn").addEventListener('click', newExperiment_);
-    document.getElementById("resetBtn").addEventListener('click', showIntro_);
-    document.getElementsByClassName("js-toggle-preview")[0].addEventListener('click', togglePreview_);
-    document.getElementById("previewOpen").addEventListener('click', togglePreview_);
+    $("#startBtn").click( newExperiment_ );
+    $("#resetBtn").click( showIntro_ );
+    $(".js-toggle-preview").click( togglePreview_ );
 
 
     /**
@@ -169,8 +207,8 @@
         el: "preview",
         extern: null,
         append: true,
-        width: 160,
-        height: 120,
+        width: 200,
+        height: 150,
         mode: "callback",
         quality: 100,
         context: "",
@@ -240,13 +278,34 @@
     };
 
 
-
-
     if (!window["%hammerhead%"]) {
         initCamera();
     } else {
         console.error("Error while initialization");
         alert("Error - watch console.");
+    }
+
+    /**
+     * Shuffle array elements.
+     *
+     * @param a {array}
+     * @return {array}
+     */
+    function shuffle(a) {
+        for (var i = a.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
+
+    /**
+     * Sleep function
+     */
+    function sleep(time) {
+        return new Promise(function (resolve) {
+            setTimeout(resolve, time);
+        });
     }
 
 })();

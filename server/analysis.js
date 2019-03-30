@@ -20,7 +20,7 @@ let getEmotions = async (imagePath) => {
         url: 'https://northeurope.api.cognitive.microsoft.com/face/v1.0/detect',
         headers: {
             'Content-Type': 'application/octet-stream',
-            'Ocp-Apim-Subscription-Key': '3b0340d7109f4614bf1946de16850c25'
+            'Ocp-Apim-Subscription-Key': process.env.SUBSCRIPTION
         },
         params: {
             returnFaceId : false,
@@ -51,39 +51,30 @@ let getEmotions = async (imagePath) => {
     })
 };
 
-let analyseImage = async (imagePath) => {
-    let emotions = await getEmotions(imagePath);
-    if (emotions) {
-        // TODO store data
-        // await fs.writeFileSync(resultPath, JSON.stringify(file, null, 4));
-        // let rows = "name;user_age;user_gender;score;imageId;imageShot;smile;gender;age;anger;contempt;disgust;fear;happiness;neutral;sadness;surprise\n";
-        // rows += data    + ";" + "image" + k + "_" + counter
-        //     + ";" + result.smile
-        //     + ";" + result.age
-        //     + ";" + result.gender
-        //     + ";" + result.emotion.anger
-        //     + ";" + result.emotion.contempt
-        //     + ";" + result.emotion.disgust
-        //     + ";" + result.emotion.fear
-        //     + ";" + result.emotion.happiness
-        //     + ";" + result.emotion.neutral
-        //     + ";" + result.emotion.sadness
-        //     + ";" + result.emotion.surprise + "\n";
-    } else {
+let analyseImage = async (imagePath, client) => {
+    let result = await getEmotions(imagePath);
+    if (!result) {
+        // return console.error("[Analysis] Face does not detect " + imagePath);
         console.error("[Analysis] Face does not detect " + imagePath);
     }
+    let arr = imagePath.toString().split("/");
+    let image = arr.pop();
+    result = Object.assign({ image: image }, result);
+    client.emit("result", result);
+    // TODO store data
+    await fs.writeFileSync(arr.join("/") + "/" + image.split(".")[0] + ".json", JSON.stringify(result, null, 4));
 };
 
-let addToQueue_ = (image) => {
-    queue.push(image);
+let addToQueue_ = (image, client) => {
+    queue.push({image: image, client: client});
 };
 
 let init_ = () => {
     setInterval( () => {
-        let imagePath = queue.pop();
-        if (imagePath) {
-            console.log("[Analysis] Start analysis " + imagePath);
-            analyseImage(imagePath);
+        let task = queue.shift();
+        if (task && task.image) {
+            console.log("[Analysis] Start analysis " + task.image);
+            analyseImage(task.image, task.client);
         }
     }, 3 * 1000);
 };

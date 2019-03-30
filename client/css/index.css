@@ -1,9 +1,16 @@
-.h-50vh {
-  height: 50vh;
+.left-column {
+  float: left;
+  width: calc(100% - 200px);
+  border-right: 1px solid #bbb;
 }
 
-.bb-1 {
-  border-bottom: 1px solid #bbb;
+.right-column {
+  float: left;
+  width: 200px;
+}
+
+.h-100vh {
+  height: 100vh;
 }
 
 .hidden {
@@ -15,32 +22,10 @@
 }
 
 .preview {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  box-shadow: 0 0 10px #999;
-  height: 120px;
+  height: 150px;
+  margin-bottom: 20px;
 }
 
-.preview-open {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  box-shadow: 0 0 10px #999;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  padding: 8px;
-  text-align: center;
-  cursor: pointer;
-  color: #999;
-}
-
-.preview-close {
-  position: absolute;
-  right: 0;
-  padding: 5px;
-  cursor: pointer;
-  z-index: 1;
-  opacity: .4;
+.experiment {
+  background: no-repeat center;
 }

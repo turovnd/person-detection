@@ -171,7 +171,7 @@
 
         if (smiles.length)
             $("#smileBlock").html(
-                (smiles.reduce((a,b) => { return a + b }) / smiles.length).toFixed(1) >= 0.5
+                smiles.map(el => { return el >= 0.5 }).filter(el => { return el === true }).length
                 ? "True" : "False"
             );
     };

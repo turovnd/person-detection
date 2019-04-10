@@ -107,7 +107,7 @@
             $('#intro').addClass("hidden").removeClass("d-flex");
             $('#result').removeClass("hidden").addClass("d-flex");
             $('#experiment').addClass("hidden");
-            $('#resultBlock').html("<h2><i class='fa fa-spin fa-spinner' aria-hidden='true'></i> Please wait, data is processing</h2>");
+            $('#resultBlock').html("<h2><i class='fa fa-spin fa-spinner' aria-hidden='true'></i> Please wait, data is processed</h2>");
             $('#resetBtn').attr('disabled', true).addClass("hidden");
             currentExperiment = null;
         });

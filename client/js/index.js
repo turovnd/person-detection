@@ -9,9 +9,9 @@
     var currentResults = { metadata: { age: [], gender: [], smile: [] }, steps: {} };
     var socket = io(socketUrl);
     var snapshotTimes = { // Total 3 sec
-        before: 200,
-        between: 2000,
-        after: 800
+        before: 300,
+        between: 3000,
+        after: 700
     };
 
     /**
@@ -125,22 +125,32 @@
     var updateResults = function() {
         if (Object.keys(currentResults.steps).length === EXPERIMENT_STEPS.length * 2) {
             $('#resetBtn').attr('disabled', false).removeClass("hidden");
+
             $('#resultBlock').html("<table class='table'><thead><tr>" +
-                    "<th>IMAGE</th>" + (EXPERIMENT_STEPS.map(el => { return "<th>" + el.id.toUpperCase() + "</th>" })) + "<th>RESULT</th>" +
+                    "<th>IMAGE</th>" + (EXPERIMENT_STEPS.map(el => { return "<th>" + el.id.toUpperCase() + "</th>" })).join("") + "<th>RESULT</th>" +
                 "</tr></thead><tbody>" +
                     EXPERIMENT_STEPS.map(el => {
                         var first = currentResults.steps[ el.id + "_first" ];
                         var second = currentResults.steps[ el.id + "_second" ];
                         var result = getResult_(first, second);
                         var img = el.image.split("/");
+                        var success = false;
                         return "<tr>" +
                             "<td>" + img[img.length - 1].split(".")[0] + "</td>" +
                             EXPERIMENT_STEPS.map(el1 => {
-                                return "<td>" + result[el1.id] +  "</td>";
-                            }) +
-                            "<td>TODO</td>" +
+                                if (el === el1 && result[el1.id] > 0)
+                                    success = true;
+                                if (result[el1.id] > 0)
+                                    return "<td class='text-success'>" + result[el1.id] +  "</td>";
+                                else
+                                    return "<td class='text-danger'>" + result[el1.id] +  "</td>";
+                            }).join("") +
+                            (success
+                                ? "<td class='text-success'>increase</td>"
+                                : "<td class='text-danger'>decrease</td>"
+                            ) +
                         "</tr>"
-                    }) +
+                    }).join("") +
                 "</tbody></table>");
         }
 
@@ -161,7 +171,8 @@
 
         if (smiles.length)
             $("#smileBlock").html(
-                (smiles.reduce((a,b) => { return a + b }) / smiles.length).toFixed(2)
+                (smiles.reduce((a,b) => { return a + b }) / smiles.length).toFixed(1) >= 0.5
+                ? "True" : "False"
             );
     };
 
